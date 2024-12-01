@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Filmes</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #2e2e2e;
+      color: #fff;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #333;
+      padding: 10px 20px;
+      text-align: center;
+    }
+    header h1 {
+      margin: 0;
+      color: #fff;
+    }
+    .search-container {
+      text-align: center;
+      margin: 20px;
+    }
+    .search-container input {
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 5px;
+      width: 80%;
+      max-width: 500px;
+      border: 2px solid #444;
+      background-color: #333;
+      color: #fff;
+    }
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .movie-card {
+      background-color: #444;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      text-align: center;
+    }
+    .movie-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    .movie-card h3 {
+      margin: 10px 0;
+      font-size: 18px;
+    }
+    .movie-card button {
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .movie-card button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Catálogo de Filmes e Séries</h1>
+  </header>
+
+  <div class="search-container">
+    <input type="text" id="searchInput" placeholder="Buscar por nome..." onkeyup="searchMovies()">
+  </div>
+
+  <div class="grid-container" id="movieGrid">
+    <!-- Filmes serão carregados aqui -->
+  </div>
+
+  <script>
+    // Função para buscar e filtrar filmes
+    function searchMovies() {
+      const searchValue = document.getElementById("searchInput").value.toLowerCase();
+      const movies = document.querySelectorAll(".movie-card");
+      movies.forEach(movie => {
+        const title = movie.querySelector("h3").textContent.toLowerCase();
+        if (title.includes(searchValue)) {
+          movie.style.display = "block";
+        } else {
+          movie.style.display = "none";
+        }
+      });
+    }
+
+    // Função para carregar e exibir os filmes da URL
+    function loadMovies() {
+      fetch('http://sonhadorbrasil.free.nf/sonhador/automatico/f.txt')
+        .then(response => response.text())
+        .then(data => {
+          const movies = data.split('\n').filter(line => line.trim() !== '');
+          const gridContainer = document.getElementById("movieGrid");
+          movies.forEach(movieData => {
+            const [name, logo, url] = movieData.split(',');
+
+            const movieCard = document.createElement("div");
+            movieCard.classList.add("movie-card");
+
+            const movieImage = document.createElement("img");
+            movieImage.src = logo;
+            movieCard.appendChild(movieImage);
+
+            const movieTitle = document.createElement("h3");
+            movieTitle.textContent = name;
+            movieCard.appendChild(movieTitle);
+
+            const playButton = document.createElement("button");
+            playButton.textContent = "Assistir";
+            playButton.onclick = function() {
+              openVideoFrame(url);
+            };
+            movieCard.appendChild(playButton);
+
+            gridContainer.appendChild(movieCard);
+          });
+        })
+        .catch(error => console.error("Erro ao carregar lista de filmes:", error));
+    }
+
+    // Função para abrir o vídeo em um iframe
+    function openVideoFrame(url) {
+      const iframeContainer = document.createElement('div');
+      iframeContainer.style.position = "fixed";
+      iframeContainer.style.top = 0;
+      iframeContainer.style.left = 0;
+      iframeContainer.style.width = "100%";
+      iframeContainer.style.height = "100%";
+      iframeContainer.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+      iframeContainer.style.display = "flex";
+      iframeContainer.style.alignItems = "center";
+      iframeContainer.style.justifyContent = "center";
+
+      const iframe = document.createElement("iframe");
+      iframe.src = url;
+      iframe.width = "80%";
+      iframe.height = "80%";
+      iframe.style.border = "none";
+      iframeContainer.appendChild(iframe);
+
+      const closeButton = document.createElement("button");
+      closeButton.textContent = "Fechar";
+      closeButton.style.position = "absolute";
+      closeButton.style.top = "20px";
+      closeButton.style.right = "20px";
+      closeButton.style.backgroundColor = "#d9534f";
+      closeButton.style.color = "#fff";
+      closeButton.style.border = "none";
+      closeButton.style.padding = "10px 20px";
+      closeButton.style.cursor = "pointer";
+      closeButton.onclick = function() {
+        document.body.removeChild(iframeContainer);
+      };
+      iframeContainer.appendChild(closeButton);
+
+      document.body.appendChild(iframeContainer);
+    }
+
+    // Carregar filmes assim que a página carregar
+    window.onload = loadMovies;
+  </script>
+</body>
+</html>
